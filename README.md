@@ -1,60 +1,889 @@
-# Firebase IoT Monitoring Dashboard
+# 🌐 Firebase IoT Monitoring Dashboard
+
+> **Task 4 — Cloud Computing, Firebase Realtime Database, Authentication & Web Dashboard**
+
+A login-protected IoT monitoring dashboard built using **Firebase Realtime Database, Firebase Authentication, Firebase Hosting, HTML, CSS and JavaScript**.
+
+The dashboard is designed to display live **temperature, humidity, ambient light and device status** from Firebase and allows authenticated users to send **bulb control and operating-mode commands** back to the database.
+
+---
 
 ## 📌 Overview
 
-A cloud-based IoT monitoring dashboard built with **Firebase**. The system provides a login-protected web dashboard for monitoring **temperature, humidity, ambient light, and device status** through Firebase Realtime Database.
+The objective of this task is to build and demonstrate the **cloud and dashboard layer** of an IoT environment-monitoring system.
 
-The dashboard also allows users to send **bulb ON/OFF control commands** through the Firebase database.
+The system contains:
 
----
+* 🔐 Login-protected authentication
+* ☁️ Firebase cloud backend
+* 🗄️ Firebase Realtime Database
+* 📊 Live sensor monitoring dashboard
+* 💡 Bulb ON/OFF control
+* 🔄 Manual/AUTO operating mode
+* 📋 Historical data table
+* 📥 CSV data export
+* 🛡️ Authenticated database security rules
+* 🚀 Firebase Hosting deployment
 
-## 🎯 Objective
-
-The objective of this project is to build a secure cloud monitoring system using **Firebase Authentication, Firebase Realtime Database, and Firebase Hosting**.
-
-The dashboard:
-
-- Displays live sensor data
-- Shows device status
-- Provides bulb control
-- Uses login authentication
-- Uses database security rules
-- Runs through Firebase Hosting
+> **Note:** This task focuses on the cloud/dashboard side. A physical ESP32 or sensor device writing actual readings to Firebase is handled separately in a later task.
 
 ---
 
-## ☁️ Technologies Used
+# 🎯 Objectives
 
-- **Firebase**
-- **Firebase Realtime Database**
-- **Firebase Authentication**
-- **Firebase Hosting**
-- **Firebase CLI**
-- **HTML**
-- **CSS**
-- **JavaScript**
-- **Node.js**
+The main objectives of this task are to:
+
+1. Create a Firebase cloud project.
+2. Configure Firebase Authentication.
+3. Create and secure a Realtime Database.
+4. Develop a web-based monitoring dashboard.
+5. Implement live Firebase database listeners.
+6. Implement bulb control commands.
+7. Implement Manual/AUTO mode control.
+8. Display historical data from Firebase.
+9. Export historical data as CSV.
+10. Deploy the dashboard using Firebase Hosting.
+11. Protect database access using authenticated users.
 
 ---
 
-## 🏗️ System Design
+# 🧠 Concepts Covered
+
+## ☁️ Cloud Computing
+
+Cloud computing uses computing resources, storage and services over the internet instead of relying only on locally owned hardware.
+
+---
+
+## 🏗️ IaaS, PaaS, SaaS and BaaS
+
+| Model    | Description                                                               |
+| -------- | ------------------------------------------------------------------------- |
+| **IaaS** | Provides virtual servers, storage and networking                          |
+| **PaaS** | Provides a platform for developing and running applications               |
+| **SaaS** | Provides complete software applications to users                          |
+| **BaaS** | Provides ready-made backend services such as authentication and databases |
+
+**Firebase** is used as the **Backend-as-a-Service (BaaS)** platform in this project.
+
+---
+
+## 🗄️ Firebase Realtime Database
+
+Firebase Realtime Database stores information as a JSON tree and synchronizes changes with connected clients in real time.
+
+This allows the dashboard to update automatically when sensor values change.
+
+---
+
+## 🔐 Authentication vs Authorization
+
+### Authentication
+
+Authentication answers:
+
+> **Who are you?**
+
+Firebase Email/Password Authentication is used to verify the user's login credentials.
+
+### Authorization
+
+Authorization answers:
+
+> **What are you allowed to access or modify?**
+
+Firebase Realtime Database Security Rules determine which authenticated users can read or write database nodes.
+
+---
+
+# 🏗️ System Architecture
 
 ```text
-             Firebase Realtime Database
-                       ↕
-              Login-Protected
-                 Web Dashboard
-                       │
-          ┌────────────┴────────────┐
-          ↓                         ↓
-     Sensor Data               Bulb Control
-          │                         │
-   ┌──────┴──────┐                  │
-   │             │                  │
-Temperature   Humidity          ON / OFF
-   │             │                  │
-   └──────┬──────┘                  │
-          │                         │
-       LDR Light                    │
-                                    │
-                              Future Device
+                  ┌─────────────────────────┐
+                  │       Web Browser       │
+                  │                         │
+                  │  Login Page             │
+                  │        ↓                │
+                  │  Monitoring Dashboard   │
+                  └────────────┬────────────┘
+                               │
+                    Firebase Web SDK
+                               │
+              ┌────────────────┴────────────────┐
+              │                                 │
+              ▼                                 ▼
+      ┌───────────────┐                 ┌─────────────────┐
+      │ Authentication│                 │ Realtime        │
+      │               │                 │ Database        │
+      │ Email/Password│                 │                 │
+      └───────────────┘                 │ sensors         │
+                                        │ status          │
+                                        │ control         │
+                                        │ logs            │
+                                        └────────┬────────┘
+                                                 │
+                                                 ▼
+                                      Future ESP32 / IoT Device
+```
+
+---
+
+# 🔄 Database Structure
+
+The Realtime Database is organized into four main nodes:
+
+```text
+Firebase Realtime Database
+│
+├── sensors
+│   ├── temperature
+│   ├── humidity
+│   └── light
+│
+├── control
+│   ├── mode
+│   └── bulb
+│
+├── logs
+│   └── timestamped historical readings
+│
+└── status
+    └── device status
+```
+
+### `sensors`
+
+Stores live environmental readings.
+
+Examples:
+
+* Temperature
+* Humidity
+* Ambient light / LDR
+
+### `control`
+
+Stores commands generated by the dashboard.
+
+Examples:
+
+* `MANUAL`
+* `AUTO`
+* `ON`
+* `OFF`
+
+### `logs`
+
+Stores historical readings using timestamps.
+
+The timestamp field is indexed for efficient querying.
+
+### `status`
+
+Stores the device connection/status information used by the dashboard to determine whether the device is online or offline.
+
+---
+
+# 💻 Technologies Used
+
+| Technology                     | Purpose                           |
+| ------------------------------ | --------------------------------- |
+| **HTML**                       | Dashboard structure               |
+| **CSS**                        | Dashboard styling                 |
+| **JavaScript**                 | Dashboard functionality           |
+| **Firebase Web SDK**           | Communication with Firebase       |
+| **Firebase Authentication**    | User login                        |
+| **Firebase Realtime Database** | Live data storage                 |
+| **Firebase Hosting**           | Website hosting                   |
+| **Node.js**                    | Runtime required for Firebase CLI |
+| **Firebase CLI**               | Firebase project deployment       |
+
+---
+
+# 📁 Project Structure
+
+```text
+Firebase-IoT-Monitoring-Dashboard/
+│
+├── index.html
+├── dashboard.html
+│
+├── firebase.json
+├── .firebaserc
+├── 404.html
+│
+├── assets/
+│   └── screenshots/
+│
+└── README.md
+```
+
+---
+
+# 🔐 Login System
+
+The project uses **Firebase Email/Password Authentication**.
+
+The user first reaches the login page:
+
+```text
+index.html
+     │
+     ▼
+Enter Email + Password
+     │
+     ▼
+Firebase Authentication
+     │
+     ├── Invalid → Login rejected
+     │
+     └── Valid → dashboard.html
+```
+
+The dashboard is intended to be accessible only after successful authentication.
+
+The authentication provider was enabled through:
+
+**Firebase Console → Authentication → Sign-in method → Email/Password**
+
+Users were then created through:
+
+**Authentication → Users → Add user**
+
+---
+
+# 📊 Dashboard Features
+
+## 🌡️ Temperature
+
+Displays the temperature value stored under the `sensors` node.
+
+---
+
+## 💧 Humidity
+
+Displays the current humidity reading from Firebase.
+
+---
+
+## 💡 Ambient Light
+
+Displays the ambient light/LDR reading received from the database.
+
+---
+
+## 🔴 Device Status
+
+The dashboard monitors the `status` node.
+
+When no device status is available, the dashboard displays:
+
+> **Device offline**
+
+This is expected when no physical device is currently writing status information to Firebase.
+
+---
+
+# 💡 Bulb Control
+
+The dashboard provides a bulb ON/OFF control.
+
+When the user changes the bulb switch, the dashboard writes the command to:
+
+```text
+control
+```
+
+Example:
+
+```text
+control
+└── bulb: "ON"
+```
+
+or:
+
+```text
+control
+└── bulb: "OFF"
+```
+
+A future ESP32/IoT device can read this value and physically control a bulb.
+
+---
+
+# 🔄 Manual / AUTO Mode
+
+The dashboard also provides an operating-mode switch.
+
+Possible values include:
+
+```text
+MANUAL
+AUTO
+```
+
+The selected mode is written to:
+
+```text
+control
+```
+
+Example:
+
+```text
+control
+├── mode: "AUTO"
+└── bulb: "OFF"
+```
+
+This allows a future physical device to determine whether the system should operate manually or automatically.
+
+---
+
+# 📋 Historical Data
+
+The dashboard includes a historical data table based on the Firebase:
+
+```text
+logs
+```
+
+The records are queried using the `timestamp` field.
+
+The database rules include:
+
+```json
+".indexOn": ["timestamp"]
+```
+
+This allows timestamp-based queries to work efficiently.
+
+---
+
+# 📥 CSV Export
+
+The dashboard provides a **Download CSV** feature.
+
+The currently loaded historical records are converted into CSV format and downloaded as a file.
+
+This allows collected environmental data to be:
+
+* Saved locally
+* Opened in Excel
+* Analyzed
+* Shared
+* Used for project documentation
+
+---
+
+# 🛡️ Firebase Security Rules
+
+The Realtime Database was initially created in **locked mode**.
+
+Custom rules were then configured so that authenticated users can access the required nodes.
+
+```json
+{
+  "rules": {
+    "sensors": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "control": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "logs": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["timestamp"]
+    },
+    "status": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
+```
+
+### Security principle
+
+The important condition is:
+
+```text
+auth != null
+```
+
+This means that database access requires an authenticated Firebase user.
+
+The database is therefore not configured as a completely open test database.
+
+---
+
+# 🚀 Firebase Hosting
+
+The dashboard is deployed using **Firebase Hosting**.
+
+The Firebase project used for this task is:
+
+```text
+Project Name: env-monitor
+Project ID: env-monitor-845af
+Web App: env-monitor-web
+```
+
+The deployed website is:
+
+**Login Page**
+
+https://env-monitor-845af.web.app/index.html
+
+**Dashboard**
+
+https://env-monitor-845af.web.app/dashboard.html
+
+---
+
+# ⚙️ Installation & Setup
+
+## 1. Install Node.js
+
+Node.js is required to use the Firebase CLI.
+
+Version used in this project:
+
+```text
+Node.js v24.21.0 LTS
+```
+
+Check the installation:
+
+```bash
+node --version
+```
+
+---
+
+## 2. Install Firebase CLI
+
+Run:
+
+```bash
+npm install -g firebase-tools
+```
+
+Verify installation:
+
+```bash
+firebase --version
+```
+
+---
+
+## 3. Login to Firebase
+
+Run:
+
+```bash
+firebase login
+```
+
+A Google authentication page opens.
+
+Sign in using the Google account associated with the Firebase project.
+
+---
+
+## 4. Initialize Firebase Hosting
+
+Open the project directory in Command Prompt or PowerShell:
+
+```bash
+cd path-to-project
+```
+
+Then run:
+
+```bash
+firebase init hosting
+```
+
+Select:
+
+```text
+Use an existing project
+```
+
+Then select:
+
+```text
+env-monitor-845af
+```
+
+Use:
+
+```text
+.
+```
+
+as the public directory.
+
+The existing `index.html` should not be overwritten.
+
+---
+
+## 5. Deploy the Website
+
+Run:
+
+```bash
+firebase deploy
+```
+
+After deployment, Firebase provides the Hosting URL.
+
+Example:
+
+```text
+https://env-monitor-845af.web.app/
+```
+
+---
+
+# 🧪 Testing
+
+The dashboard was tested using the Firebase console and browser.
+
+### Test 1 — Login
+
+```text
+Login Page
+    ↓
+Enter valid credentials
+    ↓
+Authentication successful
+    ↓
+Dashboard opens
+```
+
+### Test 2 — Bulb Control
+
+```text
+Dashboard
+    ↓
+Switch bulb ON
+    ↓
+Firebase control node
+    ↓
+bulb = ON
+```
+
+### Test 3 — Mode Control
+
+```text
+Dashboard
+    ↓
+Switch MANUAL → AUTO
+    ↓
+Firebase control node
+    ↓
+mode = AUTO
+```
+
+### Test 4 — Empty Sensor State
+
+When there is no physical device writing sensor data:
+
+```text
+Temperature → --
+Humidity    → --
+Light        → --
+Status       → Device offline
+```
+
+This confirms that the dashboard responds correctly to the current database state.
+
+---
+
+# 📸 Evidence
+
+The project includes evidence for:
+
+### Firebase Project
+
+* Firebase console
+* Project creation
+* Project ID
+* Analytics configuration
+* Web app registration
+
+### Firebase CLI
+
+* Node.js installation
+* Firebase CLI installation
+* Firebase login
+* Firebase Hosting initialization
+* Firebase deployment
+
+### Authentication
+
+* Authentication product
+* Email/Password provider
+* Firebase users
+* Add-user dialog
+
+### Realtime Database
+
+* Database creation
+* Database location
+* Locked mode
+* Empty database
+* Security rules
+
+### Dashboard
+
+* Login page
+* Dashboard
+* Bulb ON
+* AUTO mode
+* Device offline state
+
+---
+
+# 🧩 Challenges & Solutions
+
+## Challenge 1 — Locked Database
+
+The newly created database started in locked mode.
+
+### Solution
+
+Custom rules were created for:
+
+```text
+sensors
+control
+logs
+status
+```
+
+Each node requires:
+
+```text
+auth != null
+```
+
+---
+
+## Challenge 2 — Existing Dashboard Files
+
+During Firebase Hosting initialization, Firebase detected an existing `index.html`.
+
+### Solution
+
+The overwrite option was declined so that the existing dashboard remained unchanged.
+
+---
+
+## Challenge 3 — Selecting the Correct Firebase Project
+
+The Firebase project already existed before Hosting was initialized.
+
+### Solution
+
+The Firebase CLI was configured using:
+
+```text
+Use an existing project
+```
+
+and the existing:
+
+```text
+env-monitor-845af
+```
+
+project was selected.
+
+---
+
+## Challenge 4 — Multiple Google Accounts
+
+Multiple Google accounts were available during Firebase CLI authentication.
+
+### Solution
+
+The Google account associated with the Firebase project was selected during the OAuth login process.
+
+---
+
+## Challenge 5 — Dashboard Shows Device Offline
+
+The dashboard initially shows no sensor readings.
+
+### Reason
+
+No physical device is currently writing values into:
+
+```text
+sensors
+status
+```
+
+Therefore the dashboard correctly displays empty readings and the offline status.
+
+---
+
+# 🔮 Future Integration
+
+The next stage of the project can connect a physical IoT device such as an **ESP32**.
+
+The planned communication is:
+
+```text
+              Firebase
+                 ▲
+                 │
+        sensors / status
+                 │
+                 │
+              ESP32
+                 │
+          ┌──────┴──────┐
+          │             │
+       Sensors         Bulb
+```
+
+The ESP32 can:
+
+### Write to Firebase
+
+```text
+sensors
+├── temperature
+├── humidity
+└── light
+```
+
+and:
+
+```text
+status
+└── device status
+```
+
+### Read from Firebase
+
+```text
+control
+├── mode
+└── bulb
+```
+
+This creates a complete two-way IoT system.
+
+---
+
+# 📈 Expected Complete System
+
+Once the physical device is connected, the complete workflow becomes:
+
+```text
+Temperature Sensor ──┐
+Humidity Sensor ─────┤
+LDR Sensor ──────────┤
+                     ▼
+                   ESP32
+                     │
+                     ▼
+              Firebase Database
+                     │
+                     ▼
+             Web Dashboard
+                     │
+          ┌──────────┴──────────┐
+          ▼                     ▼
+    Live Monitoring        User Control
+                                │
+                                ▼
+                         Firebase Control
+                                │
+                                ▼
+                              ESP32
+                                │
+                                ▼
+                              Bulb
+```
+
+---
+
+# 💭 Reflection
+
+This task demonstrated that a cloud backend is more than simply storing data.
+
+The project introduced the difference between **authentication** and **authorization**.
+
+Authentication verifies the identity of a user, while Firebase Security Rules determine what an authenticated user can access.
+
+Using separate database nodes for:
+
+```text
+sensors
+control
+logs
+status
+```
+
+also makes the system easier to organize and provides a foundation for more specific security policies in the future.
+
+The dashboard is currently deployed end-to-end on the cloud side, with Firebase Hosting, Authentication and Realtime Database working together.
+
+The absence of physical sensor data is intentional for this stage. The dashboard is ready to consume live data when the IoT device is connected in a later task.
+
+---
+
+# 🔗 Project Links
+
+### 🌐 Live Login Page
+
+https://env-monitor-845af.web.app/index.html
+
+### 📊 Live Dashboard
+
+https://env-monitor-845af.web.app/dashboard.html
+
+### 💻 GitHub Repository
+
+https://github.com/sachinsivapragash/Firebase-IoT-Monitoring-Dashboard.git
+
+### 📁 Project Files
+
+https://drive.google.com/drive/folders/1QvfjW99aLpPPwK4aH_C9T4b6uFCV67dA?usp=sharing
+
+### 👨‍💻 Portfolio
+
+https://sachinsivapragash.github.io/sachin-portfolio/
+
+---
+
+# 🏁 Conclusion
+
+The **Firebase IoT Monitoring Dashboard** successfully demonstrates the cloud-based portion of an IoT monitoring system.
+
+The project includes:
+
+**Firebase Authentication → Secure Database → Live Dashboard → User Controls → Firebase Hosting**
+
+The dashboard is deployed and ready for integration with a physical ESP32-based sensor system in the next stage.
+
+---
+
+## 👤 Author
+
+**Sachin S**
+
+**Project:** Firebase IoT Monitoring Dashboard
+**Platform:** Firebase
+**Technology:** HTML · CSS · JavaScript · Firebase · Node.js
+**Deployment:** Firebase Hosting
